@@ -46,7 +46,7 @@ if __name__ == "__main__":
                     name="Product 1",
                     description="Description for product 1",
                     price=10.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
                     owner=user,
                 ),
                 Product(

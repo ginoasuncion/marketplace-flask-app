@@ -18,6 +18,9 @@ class Product(db.Model):
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
     image_url = db.Column(db.String(200))  # Add image URL field
+    contact_details = db.Column(
+        db.String(200), nullable=False
+    )  # Add contact details field
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     owner = db.relationship("User", backref=db.backref("products", lazy=True))
 
@@ -26,6 +29,12 @@ class Product(db.Model):
 def index():
     products = Product.query.all()
     return render_template("index.html", products=products)
+
+
+@app.route("/product/<int:product_id>")
+def product_detail(product_id):
+    product = Product.query.get_or_404(product_id)
+    return render_template("product_detail.html", product=product)
 
 
 # Add routes for user authentication, product CRUD operations, etc.
@@ -40,76 +49,86 @@ if __name__ == "__main__":
             db.session.add(user)
             db.session.commit()
 
-            # Adding more products with sample photo URLs
+            # Adding more products with sample photo URLs and contact details
             products = [
                 Product(
                     name="Product 1",
                     description="Description for product 1",
                     price=10.99,
                     image_url="https://via.placeholder.com/300",
+                    contact_details="contact1@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 2",
                     description="Description for product 2",
                     price=20.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact2@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 3",
                     description="Description for product 3",
                     price=30.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact3@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 4",
                     description="Description for product 4",
                     price=40.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact4@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 5",
                     description="Description for product 5",
                     price=50.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact5@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 6",
                     description="Description for product 6",
                     price=60.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact6@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 7",
                     description="Description for product 7",
                     price=70.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact7@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 8",
                     description="Description for product 8",
                     price=80.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact8@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 9",
                     description="Description for product 9",
                     price=90.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact9@example.com",
                     owner=user,
                 ),
                 Product(
                     name="Product 10",
                     description="Description for product 10",
                     price=100.99,
-                    image_url="https://via.placeholder.com/150",
+                    image_url="https://via.placeholder.com/300",
+                    contact_details="contact10@example.com",
                     owner=user,
                 ),
             ]

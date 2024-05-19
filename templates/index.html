@@ -60,6 +60,35 @@
                 </div>
             </div>
         </form>
+
+        <form method="post" action="{{ url_for('index') }}">
+            <div class="form-row align-items-center mb-4">
+                <div class="col-auto">
+                    <label class="sr-only" for="filter_tag">Filter by Tag</label>
+                    <select class="form-control mb-2" name="filter_tag" id="filter_tag">
+                        <option value="">All Tags</option>
+                        {% for tag in all_tags %}
+                            <option value="{{ tag[0] }}">{{ tag[0] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="sr-only" for="sort_by">Sort By</label>
+                    <select class="form-control mb-2" name="sort_by" id="sort_by">
+                        <option value="">Sort By</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                        <option value="name_asc">Name: A to Z</option>
+                        <option value="name_desc">Name: Z to A</option>
+                        <!-- Add more sorting options as needed -->
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-primary mb-2">Apply</button>
+                </div>
+            </div>
+        </form>
+
         <div class="row">
             {% for product in products %}
             <div class="col-lg-4 col-md-6 mb-4">
@@ -85,7 +114,7 @@
             <ul class="pagination justify-content-center">
                 {% if pagination.has_prev %}
                 <li class="page-item">
-                    <a class="page-link" href="{{ url_for('index', page=pagination.prev_num) }}{% if request.form.get('search') %}?search={{ request.form.get('search') }}{% endif %}" aria-label="Previous">
+                    <a class="page-link" href="{{ url_for('index', page=pagination.prev_num) }}{% if request.form.get('search') %}?search={{ request.form.get('search') }}{% endif %}{% if request.form.get('filter_tag') %}&filter_tag={{ request.form.get('filter_tag') }}{% endif %}" aria-label="Previous">
                         <span aria-hidden="true">&laquo;</span>
                     </a>
                 </li>

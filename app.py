@@ -25,23 +25,56 @@ class Product(db.Model):
     owner = db.relationship("User", backref=db.backref("products", lazy=True))
 
 
+class Tag(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+    def __repr__(self):
+        return self.name
+
+
 @app.route("/", methods=["GET", "POST"])
 @app.route("/page/<int:page>", methods=["GET", "POST"])
 def index(page=1):
     per_page = 6  # Products per page
     search_query = request.form.get("search")
+    filter_tag = request.form.get("filter_tag")
+    sort_by = request.form.get("sort_by")
+
+    # Base query
+    query = Product.query
+
+    # Apply filters
     if search_query:
         search_term = f"%{search_query}%"
-        products = Product.query.filter(
+        query = query.filter(
             or_(
                 Product.name.ilike(search_term),
                 Product.description.ilike(search_term),
                 Product.tags.ilike(search_term),
             )
-        ).paginate(page=page, per_page=per_page, error_out=False)
-    else:
-        products = Product.query.paginate(page=page, per_page=per_page, error_out=False)
-    return render_template("index.html", products=products.items, pagination=products)
+        )
+    if filter_tag:
+        query = query.filter(Product.tags.ilike(f"%{filter_tag}%"))
+
+    # Sorting logic
+    if sort_by == "price_asc":
+        query = query.order_by(Product.price.asc())
+    elif sort_by == "price_desc":
+        query = query.order_by(Product.price.desc())
+    elif sort_by == "name_asc":
+        query = query.order_by(Product.name.asc())
+    elif sort_by == "name_desc":
+        query = query.order_by(Product.name.desc())
+
+    products = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    # Get all unique tags
+    all_tags = Tag.query.distinct(Tag.name).all()
+
+    return render_template(
+        "index.html", products=products.items, pagination=products, all_tags=all_tags
+    )
 
 
 @app.route("/product/<int:product_id>")

@@ -6,6 +6,48 @@
     <title>{{ product.name }}</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-img-top {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .card-text {
+            color: #666;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25em 0.5em;
+            margin-right: 0.5em;
+            border-radius: 0.25em;
+            background-color: #f1f1f1;
+            color: #333;
+            font-size: 0.875em;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-4">
@@ -19,6 +61,11 @@
                 <p>Posted by: {{ product.owner.username }}</p>
                 <p>Contact: {{ product.contact_details }}</p>
                 <p>{{ product.description }}</p>
+                <div>
+                    {% for tag in product.tags.split(',') %}
+                    <span class="badge badge-secondary">{{ tag }}</span>
+                    {% endfor %}
+                </div>
             </div>
         </div>
         <a href="{{ url_for('index') }}" class="btn btn-primary mt-4">Back to Listings</a>

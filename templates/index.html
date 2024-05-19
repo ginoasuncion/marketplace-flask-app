@@ -80,6 +80,8 @@
                         <option value="price_desc">Price: High to Low</option>
                         <option value="name_asc">Name: A to Z</option>
                         <option value="name_desc">Name: Z to A</option>
+                        <option value="date_asc">Date Posted: Old to New</option>
+                        <option value="date_desc">Date Posted: New to Old</option>
                         <!-- Add more sorting options as needed -->
                     </select>
                 </div>
@@ -98,6 +100,7 @@
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
                             <p class="card-text">Price: ${{ product.price }}</p>
+                            <p class="card-text">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
                             <p class="card-text">Posted by: {{ product.owner.username }}</p>
                             <div>
                                 {% for tag in product.tags.split(',') %}

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
@@ -21,6 +22,9 @@ class Product(db.Model):
     image_url = db.Column(db.String(200))
     contact_details = db.Column(db.String(200), nullable=False)
     tags = db.Column(db.String(200))
+    date_posted = db.Column(
+        db.DateTime, nullable=False, default=datetime.utcnow
+    )  # Add this line
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     owner = db.relationship("User", backref=db.backref("products", lazy=True))
 
@@ -57,7 +61,6 @@ def index(page=1):
     if filter_tag:
         query = query.filter(Product.tags.ilike(f"%{filter_tag}%"))
 
-    # Sorting logic
     if sort_by == "price_asc":
         query = query.order_by(Product.price.asc())
     elif sort_by == "price_desc":
@@ -66,6 +69,10 @@ def index(page=1):
         query = query.order_by(Product.name.asc())
     elif sort_by == "name_desc":
         query = query.order_by(Product.name.desc())
+    elif sort_by == "date_asc":
+        query = query.order_by(Product.date_posted.asc())
+    elif sort_by == "date_desc":
+        query = query.order_by(Product.date_posted.desc())
 
     products = query.paginate(page=page, per_page=per_page, error_out=False)
 
@@ -101,6 +108,7 @@ if __name__ == "__main__":
                     contact_details="contact1@example.com",
                     tags="tag1,tag2",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 2",
@@ -110,6 +118,7 @@ if __name__ == "__main__":
                     contact_details="contact2@example.com",
                     tags="tag2,tag3",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 3",
@@ -119,6 +128,7 @@ if __name__ == "__main__":
                     contact_details="contact3@example.com",
                     tags="tag1,tag3",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 4",
@@ -128,6 +138,7 @@ if __name__ == "__main__":
                     contact_details="contact4@example.com",
                     tags="tag1,tag4",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 5",
@@ -137,6 +148,7 @@ if __name__ == "__main__":
                     contact_details="contact5@example.com",
                     tags="tag2,tag4",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 6",
@@ -146,6 +158,7 @@ if __name__ == "__main__":
                     contact_details="contact6@example.com",
                     tags="tag3,tag4",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 7",
@@ -155,6 +168,7 @@ if __name__ == "__main__":
                     contact_details="contact7@example.com",
                     tags="tag1,tag2",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 8",
@@ -164,6 +178,7 @@ if __name__ == "__main__":
                     contact_details="contact8@example.com",
                     tags="tag2,tag3",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 9",
@@ -173,6 +188,7 @@ if __name__ == "__main__":
                     contact_details="contact9@example.com",
                     tags="tag1,tag3",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
                 Product(
                     name="Product 10",
@@ -182,6 +198,7 @@ if __name__ == "__main__":
                     contact_details="contact10@example.com",
                     tags="tag1,tag4",
                     owner=user,
+                    date_posted=datetime.utcnow(),
                 ),
             ]
             db.session.add_all(products)

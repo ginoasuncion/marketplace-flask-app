@@ -7,6 +7,15 @@
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+        }
+        .navbar-brand:hover, .nav-link:hover {
+            color: #e2e6ea !important;
+        }
         .card {
             border: none;
             border-radius: 10px;
@@ -51,45 +60,56 @@
 </head>
 <body>
     <div class="container mt-4">
-        <h1 class="mb-4 text-center">Product Listings</h1>
-        <form method="post" action="{{ url_for('index') }}" class="mb-4">
-            <div class="input-group">
-                <input type="text" name="search" class="form-control" placeholder="Search products">
-                <div class="input-group-append">
-                    <button type="submit" class="btn btn-primary">Search</button>
+        <!-- Header Section -->
+        <div class="container mt-4">
+            <!-- Header Section -->
+            <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+                <a class="navbar-brand" href="{{ url_for('index') }}">
+                    <i class="fas fa-store"></i> Marketplace
+                </a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                        </li>
+                        <!-- Add more navigation items here if needed -->
+                    </ul>
                 </div>
-            </div>
-        </form>
+            </nav>
 
-        <form method="post" action="{{ url_for('index') }}">
-            <div class="form-row align-items-center mb-4">
-                <div class="col-auto">
-                    <label class="sr-only" for="filter_tag">Filter by Tag</label>
-                    <select class="form-control mb-2" name="filter_tag" id="filter_tag">
-                        <option value="">All Tags</option>
-                        {% for tag in all_tags %}
-                            <option value="{{ tag[0] }}">{{ tag[0] }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <label class="sr-only" for="sort_by">Sort By</label>
-                    <select class="form-control mb-2" name="sort_by" id="sort_by">
-                        <option value="">Sort By</option>
-                        <option value="price_asc">Price: Low to High</option>
-                        <option value="price_desc">Price: High to Low</option>
-                        <option value="name_asc">Name: A to Z</option>
-                        <option value="name_desc">Name: Z to A</option>
-                        <option value="date_asc">Date Posted: Old to New</option>
-                        <option value="date_desc">Date Posted: New to Old</option>
-                        <!-- Add more sorting options as needed -->
-                    </select>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary mb-2">Apply</button>
-                </div>
-            </div>
-        </form>
+            <div class="container mt-4">
+                <form method="POST" action="{{ url_for('index') }}">
+                    <div class="form-row">
+                        <div class="col-md-4 mb-3">
+                            <input type="text" class="form-control" name="search" placeholder="Search products...">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <select class="form-control" name="filter_tag">
+                                <option value="">Filter by Tag</option>
+                                {% for tag in all_tags %}
+                                <option value="{{ tag }}">{{ tag }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <select class="form-control" name="sort_by">
+                                <option value="">Sort By</option>
+                                <option value="price_asc">Price: Low to High</option>
+                                <option value="price_desc">Price: High to Low</option>
+                                <option value="name_asc">Name: A to Z</option>
+                                <option value="name_desc">Name: Z to A</option>
+                                <option value="date_asc">Date Posted: Old to New</option>
+                                <option value="date_desc">Date Posted: New to Old</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <button type="submit" class="btn btn-primary btn-block">Search</button>
+                        </div>
+                    </div>
+                </form>
 
         <div class="row">
             {% for product in products %}
@@ -99,7 +119,7 @@
                         <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="card-text">Price: ${{ product.price }}</p>
+                            <p class="card-text">Price: ฿{{ product.price }}</p>
                             <p class="card-text">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
                             <p class="card-text">Posted by: {{ product.owner.username }}</p>
                             <div>

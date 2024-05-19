@@ -7,6 +7,15 @@
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        .navbar {
+            background-color: #007bff;
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+        }
+        .navbar-brand:hover, .nav-link:hover {
+            color: #e2e6ea !important;
+        }
         .card {
             border: none;
             border-radius: 10px;
@@ -51,13 +60,30 @@
 </head>
 <body>
     <div class="container mt-4">
+        <!-- Header Section -->
+        <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+            <a class="navbar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-store"></i> Marketplace
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                    </li>
+                    <!-- Add more navigation items here if needed -->
+                </ul>
+            </div>
+        </nav>
         <h1 class="mb-4">{{ product.name }}</h1>
         <div class="row">
             <div class="col-md-6">
                 <img src="{{ product.image_url }}" class="img-fluid" alt="{{ product.name }}">
             </div>
             <div class="col-md-6">
-                <h3>Price: ${{ product.price }}</h3>
+                <h3>Price: ฿{{ product.price }}</h3>
                 <p>Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
                 <p>Posted by: {{ product.owner.username }}</p>
                 <p>Contact: {{ product.contact_details }}</p>

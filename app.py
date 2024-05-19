@@ -22,9 +22,7 @@ class Product(db.Model):
     image_url = db.Column(db.String(200))
     contact_details = db.Column(db.String(200), nullable=False)
     tags = db.Column(db.String(200))
-    date_posted = db.Column(
-        db.DateTime, nullable=False, default=datetime.utcnow
-    )  # Add this line
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     owner = db.relationship("User", backref=db.backref("products", lazy=True))
 
@@ -61,6 +59,7 @@ def index(page=1):
     if filter_tag:
         query = query.filter(Product.tags.ilike(f"%{filter_tag}%"))
 
+    # Apply sorting
     if sort_by == "price_asc":
         query = query.order_by(Product.price.asc())
     elif sort_by == "price_desc":
@@ -77,10 +76,11 @@ def index(page=1):
     products = query.paginate(page=page, per_page=per_page, error_out=False)
 
     # Get all unique tags
-    all_tags = Tag.query.distinct(Tag.name).all()
+    all_tags = db.session.query(Product.tags).distinct().all()
+    unique_tags = set(tag for sublist in all_tags for tag in sublist[0].split(","))
 
     return render_template(
-        "index.html", products=products.items, pagination=products, all_tags=all_tags
+        "index.html", products=products.items, pagination=products, all_tags=unique_tags
     )
 
 

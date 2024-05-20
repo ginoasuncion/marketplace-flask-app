@@ -6,7 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
-app.secret_key = "123"
+app.secret_key = "1234"
 
 
 class User(db.Model):

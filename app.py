@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from datetime import datetime
@@ -6,7 +6,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
-
+app.secret_key = '123'
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -88,6 +88,39 @@ def index(page=1):
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
     return render_template("product_detail.html", product=product)
+
+
+user_list = {'a':'1'}
+
+
+def login_check(username, password):
+    try:
+        if user_list[username] == password:
+            return True
+    except KeyError:
+        return False
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        if login_check(username, password):
+            session['user_login'] = username
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_login', None)
+    return redirect(url_for('index'))
+
+
 
 
 if __name__ == "__main__":

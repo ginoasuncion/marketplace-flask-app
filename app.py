@@ -6,7 +6,8 @@ from datetime import datetime
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
-app.secret_key = '123'
+app.secret_key = "123"
+
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -90,7 +91,7 @@ def product_detail(product_id):
     return render_template("product_detail.html", product=product)
 
 
-user_list = {'a':'2'}
+user_list = {"a": "2"}
 
 
 def login_check(username, password):
@@ -100,27 +101,27 @@ def login_check(username, password):
     except KeyError:
         return False
 
-@app.route('/login', methods=['GET', 'POST'])
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
 
         if login_check(username, password):
-            session['user_login'] = username
-            return redirect(url_for('index'))
+            session["user_login"] = username
+            return redirect(url_for("index"))
         else:
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
+            flash("Invalid username or password")
+            return redirect(url_for("login"))
 
-    return render_template('login.html')
+    return render_template("login.html")
 
-@app.route('/logout')
+
+@app.route("/logout")
 def logout():
-    session.pop('user_login', None)
-    return redirect(url_for('index'))
-
-
+    session.pop("user_login", None)
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
@@ -238,4 +239,3 @@ if __name__ == "__main__":
             db.session.commit()
 
     app.run(debug=True)
-

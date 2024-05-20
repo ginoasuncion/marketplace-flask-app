@@ -90,7 +90,7 @@ def product_detail(product_id):
     return render_template("product_detail.html", product=product)
 
 
-user_list = {'a':'1'}
+user_list = {'a':'2'}
 
 
 def login_check(username, password):
@@ -238,3 +238,4 @@ if __name__ == "__main__":
             db.session.commit()
 
     app.run(debug=True)
+

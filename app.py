@@ -1,12 +1,16 @@
+import os
 from flask import Flask, render_template, request, session, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
-app.secret_key = "1234"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 
 class User(db.Model):

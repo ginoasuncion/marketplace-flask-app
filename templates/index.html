@@ -75,6 +75,24 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('index') }}">Home</a>
                         </li>
+<<<<<<< Updated upstream
+=======
+                        {% if 'user_login' in session %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('product_management') }}">Product Management</a>
+                        </li>
+                        {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        </li>
+                        {% endif %}
+>>>>>>> Stashed changes
                         <!-- Add more navigation items here if needed -->
                     </ul>
                 </div>

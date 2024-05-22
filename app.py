@@ -124,6 +124,9 @@ def product_management():
         return redirect(url_for("login"))
 
     user = User.query.filter_by(username=session["user_login"]).first()
+    if user is None:
+        flash("Invalid user. Please log in again.")
+        return redirect(url_for("login"))
     products = Product.query.filter_by(owner_id=user.id).all()
 
     return render_template("product_management.html", products=products)

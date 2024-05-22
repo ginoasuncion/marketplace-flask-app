@@ -4,6 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
 
@@ -13,6 +15,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["UPLOAD_FOLDER"] = os.path.join("instance", "product_pictures")
 
 
 class User(db.Model):
@@ -109,6 +112,11 @@ def product_management():
     return render_template("product_management.html", products=products)
 
 
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
 @app.route("/product/add", methods=["GET", "POST"])
 def add_product():
     if "user_login" not in session:
@@ -119,9 +127,23 @@ def add_product():
         name = request.form.get("name")
         description = request.form.get("description")
         price = request.form.get("price")
-        image_url = request.form.get("image_url")
         contact_details = request.form.get("contact_details")
         tags = request.form.get("tags")
+
+        # Handle image upload
+        if "image" not in request.files:
+            flash("No file part")
+            return redirect(request.url)
+        file = request.files["image"]
+        if file.filename == "":
+            flash("No selected file")
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            image_url = url_for("static", filename="uploads/" + filename)
+        else:
+            image_url = None
 
         user = User.query.filter_by(username=session["user_login"]).first()
         new_product = Product(

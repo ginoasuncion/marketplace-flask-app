@@ -5,7 +5,7 @@
 </head>
 <body>
     <h1>Add Product</h1>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required>
         <br>
@@ -15,8 +15,8 @@
         <label for="price">Price:</label>
         <input type="text" id="price" name="price" required>
         <br>
-        <label for="image_url">Image URL:</label>
-        <input type="text" id="image_url" name="image_url">
+        <label for="image">Image:</label>
+        <input type="file" id="image" name="image">
         <br>
         <label for="contact_details">Contact Details:</label>
         <input type="text" id="contact_details" name="contact_details" required>
@@ -24,7 +24,10 @@
         <label for="tags">Tags:</label>
         <input type="text" id="tags" name="tags">
         <br>
+        <button onclick="history.back()">Back</button>
         <input type="submit" value="Add Product">
+        
     </form>
 </body>
 </html>
+

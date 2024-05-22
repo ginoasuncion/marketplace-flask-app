@@ -1,13 +1,18 @@
-from flask import Flask, render_template, request
+import os
+from flask import Flask, render_template, request, session, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 
 class User(db.Model):
@@ -103,6 +108,7 @@ def product_management():
 
     return render_template("product_management.html", products=products)
 
+
 @app.route("/product/add", methods=["GET", "POST"])
 def add_product():
     if "user_login" not in session:
@@ -125,7 +131,7 @@ def add_product():
             image_url=image_url,
             contact_details=contact_details,
             tags=tags,
-            owner_id=user.id
+            owner_id=user.id,
         )
 
         db.session.add(new_product)
@@ -134,6 +140,7 @@ def add_product():
         return redirect(url_for("product_management"))
 
     return render_template("add_product.html")
+
 
 @app.route("/product/edit/<int:product_id>", methods=["GET", "POST"])
 def edit_product(product_id):
@@ -160,6 +167,7 @@ def edit_product(product_id):
 
     return render_template("edit_product.html", product=product)
 
+
 @app.route("/product/delete/<int:product_id>", methods=["POST"])
 def delete_product(product_id):
     if "user_login" not in session:
@@ -176,6 +184,7 @@ def delete_product(product_id):
     flash("Product deleted successfully")
     return redirect(url_for("product_management"))
 
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -186,10 +195,10 @@ def register():
             flash("Username and password are required")
             return redirect(url_for("register"))
 
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
         new_user = User(username=username, password=hashed_password)
-        
+
         try:
             db.session.add(new_user)
             db.session.commit()
@@ -201,6 +210,7 @@ def register():
             return redirect(url_for("register"))
 
     return render_template("register.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -218,6 +228,7 @@ def login():
             return redirect(url_for("login"))
 
     return render_template("login.html")
+
 
 @app.route("/logout")
 def logout():

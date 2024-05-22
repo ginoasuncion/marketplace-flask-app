@@ -1,31 +1,37 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Edit Product</title>
-</head>
-<body>
+{% extends "layout.html" %}
+{% block title %}Edit Product{% endblock %}
+{% block content %}
+<div class="container">
     <h1>Edit Product</h1>
     <form method="post">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" value="{{ product.name }}" required>
-        <br>
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" required>{{ product.description }}</textarea>
-        <br>
-        <label for="price">Price:</label>
-        <input type="text" id="price" name="price" value="{{ product.price }}" required>
-        <br>
-        <label for="image_url">Image URL:</label>
-        <input type="text" id="image_url" name="image_url" value="{{ product.image_url }}">
-        <br>
-        <label for="contact_details">Contact Details:</label>
-        <input type="text" id="contact_details" name="contact_details" value="{{ product.contact_details }}" required>
-        <br>
-        <label for="tags">Tags:</label>
-        <input type="text" id="tags" name="tags" value="{{ product.tags }}">
-        <br>
-        <button onclick="history.back()">Back</button>
-        <input type="submit" value="Update Product">
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" class="form-control" value="{{ product.name }}" required>
+        </div>
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" class="form-control"
+                required>{{ product.description }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="price">Price:</label>
+            <input type="text" id="price" name="price" class="form-control" value="{{ product.price }}" required>
+        </div>
+        <div class="form-group">
+            <label for="image_url">Image URL:</label>
+            <input type="text" id="image_url" name="image_url" class="form-control" value="{{ product.image_url }}">
+        </div>
+        <div class="form-group">
+            <label for="contact_details">Contact Details:</label>
+            <input type="text" id="contact_details" name="contact_details" class="form-control"
+                value="{{ product.contact_details }}" required>
+        </div>
+        <div class="form-group">
+            <label for="tags">Tags:</label>
+            <input type="text" id="tags" name="tags" class="form-control" value="{{ product.tags }}">
+        </div>
+        <button onclick="history.back()" class="btn btn-secondary">Back</button>
+        <input type="submit" value="Update Product" class="btn btn-primary">
     </form>
-</body>
-</html>
+</div>
+{% endblock %}

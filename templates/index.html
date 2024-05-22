@@ -1,193 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marketplace</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .navbar {
-            background-color: #3c237f;
-        }
-        .navbar-brand, .nav-link {
-            color: #ffffff !important;
-        }
-        .navbar-brand:hover, .nav-link:hover {
-            color: #e2e6ea !important;
-        }
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .card-img-top {
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
-        }
-
-        .card-body {
-            padding: 1.5rem;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .card-text {
-            color: #666;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 0.25em 0.5em;
-            margin-right: 0.5em;
-            border-radius: 0.25em;
-            background-color: #f1f1f1;
-            color: #333;
-            font-size: 0.875em;
-        }
-    </style>
-</head>
-<body>
-    <div class="container mt-4">
-        <!-- Header Section -->
-        <div class="container mt-4">
-            <!-- Header Section -->
-            <nav class="navbar navbar-expand-lg navbar-dark mb-4">
-                <a class="navbar-brand" href="{{ url_for('index') }}">
-                    <i class="fas fa-store"></i> HS Bangkok Marketplace
-                </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-                        </li>
-                        {% if 'user_login' in session %}
- 
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('product_management') }}">Product Management</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-                        </li>
-                        {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('register') }}">Register</a>
-                        </li>
-                        {% endif %}
-
-                        <!-- Add more navigation items here if needed -->
-                    </ul>
-                </div>
-            </nav>
-
-            <div class="container mt-4">
-                <form method="POST" action="{{ url_for('index') }}">
-                    <div class="form-row">
-                        <div class="col-md-4 mb-3">
-                            <input type="text" class="form-control" name="search" placeholder="Search products...">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <select class="form-control" name="filter_tag">
-                                <option value="">Filter by Tag</option>
-                                {% for tag in all_tags %}
-                                <option value="{{ tag }}">{{ tag }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <select class="form-control" name="sort_by">
-                                <option value="">Sort By</option>
-                                <option value="price_asc">Price: Low to High</option>
-                                <option value="price_desc">Price: High to Low</option>
-                                <option value="name_asc">Name: A to Z</option>
-                                <option value="name_desc">Name: Z to A</option>
-                                <option value="date_asc">Date Posted: Old to New</option>
-                                <option value="date_desc">Date Posted: New to Old</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <button type="submit" class="btn btn-primary btn-block">Search</button>
-                        </div>
-                    </div>
-                </form>
-
-        <div class="row">
-            {% for product in products %}
-            <div class="col-lg-4 col-md-6 mb-4">
-                <a href="{{ url_for('product_detail', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
-                    <div class="card">
-                        <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ product.name }}</h5>
-                            <p class="card-text">Price: ฿{{ product.price }}</p>
-                            <p class="card-text">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
-                            <p class="card-text">Posted by: {{ product.owner.username }}</p>
-                            <div>
-                                {% for tag in product.tags.split(',') %}
-                                <span class="tag">{{ tag }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
+{% extends "layout.html" %}
+{% block title %}Marketplace{% endblock %}
+{% block content %}
+<form method="POST" action="{{ url_for('index') }}">
+    <div class="form-row">
+        <div class="col-md-4 mb-3">
+            <input type="text" class="form-control" name="search" placeholder="Search products...">
         </div>
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                {% if pagination.has_prev %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('index', page=pagination.prev_num) }}{% if request.form.get('search') %}?search={{ request.form.get('search') }}{% endif %}{% if request.form.get('filter_tag') %}&filter_tag={{ request.form.get('filter_tag') }}{% endif %}" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                {% else %}
-                <li class="page-item disabled">
-                    <a class="page-link" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                {% endif %}
-                {% for page_num in pagination.iter_pages() %}
-                <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a>
-                </li>
+        <div class="col-md-3 mb-3">
+            <select class="form-control" name="filter_tag">
+                <option value="">Filter by Tag</option>
+                {% for tag in all_tags %}
+                <option value="{{ tag }}">{{ tag }}</option>
                 {% endfor %}
-                {% if pagination.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('index', page=pagination.next_num) }}" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-                {% else %}
-                <li class="page-item disabled">
-                    <a class="page-link" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
+            </select>
+        </div>
+        <div class="col-md-3 mb-3">
+            <select class="form-control" name="sort_by">
+                <option value="">Sort By</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="name_asc">Name: A to Z</option>
+                <option value="name_desc">Name: Z to A</option>
+                <option value="date_asc">Date Posted: Old to New</option>
+                <option value="date_desc">Date Posted: New to Old</option>
+            </select>
+        </div>
+        <div class="col-md-2 mb-3">
+            <button type="submit" class="btn btn-primary btn-block">Search</button>
+        </div>
     </div>
+</form>
 
-    <!-- Bootstrap JS (optional) -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+<div class="row">
+    {% for product in products %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
+            <div class="card">
+                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">Price: ฿{{ product.price }}</p>
+                    <p class="card-text">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
+                    <p class="card-text">Posted by: {{ product.owner.username }}</p>
+                    <div>
+                        {% for tag in product.tags.split(',') %}
+                        <span class="tag">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link"
+                href="{{ url_for('index', page=pagination.prev_num) }}{% if request.form.get('search') %}?search={{ request.form.get('search') }}{% endif %}{% if request.form.get('filter_tag') %}&filter_tag={{ request.form.get('filter_tag') }}{% endif %}"
+                aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+        {% for page_num in pagination.iter_pages() %}
+        <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('index', page=page_num) }}">{{ page_num }}</a>
+        </li>
+        {% endfor %}
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('index', page=pagination.next_num) }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endblock %}

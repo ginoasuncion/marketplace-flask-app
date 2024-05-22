@@ -18,6 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
 from sample_data import products  # Import sample data
 from tag_data import tags  # Import sample tags
+from PIL import Image
 
 load_dotenv()
 
@@ -160,7 +161,14 @@ def add_product():
             return redirect(request.url)
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+
+            # Resize the image using LANCZOS (high-quality downsampling filter)
+            with Image.open(filepath) as img:
+                img = img.resize((300, 300), Image.LANCZOS)
+                img.save(filepath)  # Save the resized image back to the filesystem
+
             image_url = url_for("custom_static", filename=filename)
         else:
             image_url = None

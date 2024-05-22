@@ -36,7 +36,9 @@
     <div class="col-lg-4 col-md-6 mb-4">
         <a href="{{ url_for('product_detail', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
             <div class="card">
-                <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+                <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top resize"
+                    alt="{{ product.name }}">
+
                 <div class="card-body">
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text">Price: ฿{{ product.price }}</p>

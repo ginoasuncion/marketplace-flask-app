@@ -1,11 +1,16 @@
-from flask import Flask, render_template, request
+import os
+from flask import Flask, render_template, request, session, url_for, redirect, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 
 class User(db.Model):
@@ -88,6 +93,39 @@ def index(page=1):
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
     return render_template("product_detail.html", product=product)
+
+
+user_list = {"a": "2"}
+
+
+def login_check(username, password):
+    try:
+        if user_list[username] == password:
+            return True
+    except KeyError:
+        return False
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if login_check(username, password):
+            session["user_login"] = username
+            return redirect(url_for("index"))
+        else:
+            flash("Invalid username or password")
+            return redirect(url_for("login"))
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    session.pop("user_login", None)
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

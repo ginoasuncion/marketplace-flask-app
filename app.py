@@ -92,8 +92,6 @@ def product_detail(product_id):
     return render_template("product_detail.html", product=product)
 
 
-<<<<<<< Updated upstream
-=======
 @app.route("/product_management", methods=["GET", "POST"])
 def product_management():
     if "user_login" not in session:
@@ -228,7 +226,6 @@ def logout():
     return redirect(url_for("index"))
 
 
->>>>>>> Stashed changes
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()

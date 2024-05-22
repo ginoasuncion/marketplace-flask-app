@@ -141,7 +141,8 @@ def add_product():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-            image_url = url_for("static", filename="uploads/" + filename)
+            # image_url = f"instance/product_pictures/{filename}"
+            image_url = url_for("static", filename=filename)
         else:
             image_url = None
 
@@ -254,6 +255,7 @@ def login():
 
 @app.route("/logout")
 def logout():
+    session.clear()
     session.pop("user_login", None)
     flash("You have been logged out")
     return redirect(url_for("index"))

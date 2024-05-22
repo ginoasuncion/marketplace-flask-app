@@ -144,78 +144,93 @@ def add_product():
         flash("Please log in to add a product")
         return redirect(url_for("login"))
 
+    tags = Tag.query.all()  # Load tags for the form selection
     if request.method == "POST":
         name = request.form.get("name")
         description = request.form.get("description")
         price = request.form.get("price")
         contact_details = request.form.get("contact_details")
-        tags = request.form.get("tags")
-
-        # Handle image upload
-        if "image" not in request.files:
-            flash("No file part")
-            return redirect(request.url)
         file = request.files["image"]
-        if file.filename == "":
-            flash("No selected file")
-            return redirect(request.url)
+        selected_tag_ids = request.form.getlist("tags[]")
+        tags_string = ",".join(selected_tag_ids)
+
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             file.save(filepath)
 
-            # Resize the image using LANCZOS (high-quality downsampling filter)
             with Image.open(filepath) as img:
                 img = img.resize((300, 300), Image.LANCZOS)
-                img.save(filepath)  # Save the resized image back to the filesystem
+                img.save(filepath)  # Save the resized image
 
-            image_url = url_for("custom_static", filename=filename)
+            image_url = filename
         else:
-            image_url = None
+            flash("Invalid file type")
+            return redirect(request.url)
 
+        # Fetch the user object based on the username in session
         user = User.query.filter_by(username=session["user_login"]).first()
-        new_product = Product(
-            name=name,
-            description=description,
-            price=price,
-            image_url=image_url,
-            contact_details=contact_details,
-            tags=tags,
-            owner_id=user.id,
-        )
+        if not user:
+            flash("User not found. Please log in again.")
+            return redirect(url_for("login"))
 
-        db.session.add(new_product)
-        db.session.commit()
-        flash("Product added successfully")
+        try:
+            new_product = Product(
+                name=name,
+                description=description,
+                price=float(price),
+                image_url=image_url,
+                contact_details=contact_details,
+                tags=tags_string,
+                owner_id=user.id,  # Use the user's ID for the owner_id
+            )
+            db.session.add(new_product)
+            db.session.commit()
+            flash("Product added successfully!")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Failed to add product: {str(e)}")
+            return redirect(request.url)
+
         return redirect(url_for("product_management"))
 
-    return render_template("add_product.html")
+    return render_template("add_product.html", tags=tags)
 
 
 @app.route("/product/edit/<int:product_id>", methods=["GET", "POST"])
 def edit_product(product_id):
-    if "user_login" not in session:
-        flash("Please log in to edit a product")
-        return redirect(url_for("login"))
-
     product = Product.query.get_or_404(product_id)
-    if product.owner.username != session["user_login"]:
-        flash("You do not have permission to edit this product")
-        return redirect(url_for("product_management"))
+    all_tags = Tag.query.all()
+    product_tag_ids = [
+        int(tag_id) for tag_id in product.tags.split(",") if product.tags
+    ]
 
     if request.method == "POST":
         product.name = request.form.get("name")
         product.description = request.form.get("description")
         product.price = request.form.get("price")
-        product.image_url = request.form.get("image_url")
         product.contact_details = request.form.get("contact_details")
-        product.tags = request.form.get("tags")
+        selected_tag_ids = request.form.getlist("tags[]")
+        product.tags = ",".join(selected_tag_ids)
 
-        db.session.commit()
-        flash("Product updated successfully")
-        return redirect(url_for("product_management"))
+        image_url = request.form.get("image_url")
+        if image_url:
+            product.image_url = image_url
 
-    return render_template("edit_product.html", product=product)
+        try:
+            db.session.commit()
+            flash("Product updated successfully!")
+            return redirect(url_for("product_management"))
+        except Exception as e:
+            db.session.rollback()
+            flash("Failed to update product: " + str(e))
+
+    return render_template(
+        "edit_product.html",
+        product=product,
+        all_tags=all_tags,
+        product_tag_ids=product_tag_ids,
+    )
 
 
 @app.route("/product/delete/<int:product_id>", methods=["POST"])
@@ -290,7 +305,7 @@ def logout():
 
 if __name__ == "__main__":
     with app.app_context():
-        db.drop_all()
+        # db.drop_all()
         db.create_all()
 
         if User.query.count() == 0:

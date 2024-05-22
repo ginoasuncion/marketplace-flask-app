@@ -1,13 +1,24 @@
 import os
-from flask import Flask, render_template, request, session, url_for, redirect, flash
+from flask import (
+    Flask,
+    render_template,
+    request,
+    session,
+    url_for,
+    redirect,
+    flash,
+    send_from_directory,
+)
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-
 from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
+from sample_data import products  # Import sample data
+from tag_data import tags  # Import sample tags
+from PIL import Image
 
 load_dotenv()
 
@@ -15,7 +26,9 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["UPLOAD_FOLDER"] = os.path.join("instance", "product_pictures")
+app.config["ADMIN_KEY"] = os.getenv("ADMIN_KEY")
+app.config["UPLOAD_FOLDER"] = os.path.join(app.instance_path, "product_pictures")
+app.config["CUSTOM_STATIC_PATH"] = os.path.join(app.instance_path, "product_pictures")
 
 
 class User(db.Model):
@@ -43,6 +56,11 @@ class Tag(db.Model):
 
     def __repr__(self):
         return self.name
+
+
+@app.route("/cdn/<path:filename>")
+def custom_static(filename):
+    return send_from_directory(app.config["CUSTOM_STATIC_PATH"], filename)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -107,6 +125,9 @@ def product_management():
         return redirect(url_for("login"))
 
     user = User.query.filter_by(username=session["user_login"]).first()
+    if user is None:
+        flash("Invalid user. Please log in again.")
+        return redirect(url_for("login"))
     products = Product.query.filter_by(owner_id=user.id).all()
 
     return render_template("product_management.html", products=products)
@@ -123,72 +144,93 @@ def add_product():
         flash("Please log in to add a product")
         return redirect(url_for("login"))
 
+    tags = Tag.query.all()  # Load tags for the form selection
     if request.method == "POST":
         name = request.form.get("name")
         description = request.form.get("description")
         price = request.form.get("price")
         contact_details = request.form.get("contact_details")
-        tags = request.form.get("tags")
-
-        # Handle image upload
-        if "image" not in request.files:
-            flash("No file part")
-            return redirect(request.url)
         file = request.files["image"]
-        if file.filename == "":
-            flash("No selected file")
-            return redirect(request.url)
+        selected_tag_ids = request.form.getlist("tags[]")
+        tags_string = ",".join(selected_tag_ids)
+
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-            # image_url = f"instance/product_pictures/{filename}"
-            image_url = url_for("static", filename=filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+
+            with Image.open(filepath) as img:
+                img = img.resize((300, 300), Image.LANCZOS)
+                img.save(filepath)  # Save the resized image
+
+            image_url = filename
         else:
-            image_url = None
+            flash("Invalid file type")
+            return redirect(request.url)
 
+        # Fetch the user object based on the username in session
         user = User.query.filter_by(username=session["user_login"]).first()
-        new_product = Product(
-            name=name,
-            description=description,
-            price=price,
-            image_url=image_url,
-            contact_details=contact_details,
-            tags=tags,
-            owner_id=user.id,
-        )
+        if not user:
+            flash("User not found. Please log in again.")
+            return redirect(url_for("login"))
 
-        db.session.add(new_product)
-        db.session.commit()
-        flash("Product added successfully")
+        try:
+            new_product = Product(
+                name=name,
+                description=description,
+                price=float(price),
+                image_url=image_url,
+                contact_details=contact_details,
+                tags=tags_string,
+                owner_id=user.id,  # Use the user's ID for the owner_id
+            )
+            db.session.add(new_product)
+            db.session.commit()
+            flash("Product added successfully!")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Failed to add product: {str(e)}")
+            return redirect(request.url)
+
         return redirect(url_for("product_management"))
 
-    return render_template("add_product.html")
+    return render_template("add_product.html", tags=tags)
 
 
 @app.route("/product/edit/<int:product_id>", methods=["GET", "POST"])
 def edit_product(product_id):
-    if "user_login" not in session:
-        flash("Please log in to edit a product")
-        return redirect(url_for("login"))
-
     product = Product.query.get_or_404(product_id)
-    if product.owner.username != session["user_login"]:
-        flash("You do not have permission to edit this product")
-        return redirect(url_for("product_management"))
+    all_tags = Tag.query.all()
+    product_tag_ids = [
+        int(tag_id) for tag_id in product.tags.split(",") if product.tags
+    ]
 
     if request.method == "POST":
         product.name = request.form.get("name")
         product.description = request.form.get("description")
         product.price = request.form.get("price")
-        product.image_url = request.form.get("image_url")
         product.contact_details = request.form.get("contact_details")
-        product.tags = request.form.get("tags")
+        selected_tag_ids = request.form.getlist("tags[]")
+        product.tags = ",".join(selected_tag_ids)
 
-        db.session.commit()
-        flash("Product updated successfully")
-        return redirect(url_for("product_management"))
+        image_url = request.form.get("image_url")
+        if image_url:
+            product.image_url = image_url
 
-    return render_template("edit_product.html", product=product)
+        try:
+            db.session.commit()
+            flash("Product updated successfully!")
+            return redirect(url_for("product_management"))
+        except Exception as e:
+            db.session.rollback()
+            flash("Failed to update product: " + str(e))
+
+    return render_template(
+        "edit_product.html",
+        product=product,
+        all_tags=all_tags,
+        product_tag_ids=product_tag_ids,
+    )
 
 
 @app.route("/product/delete/<int:product_id>", methods=["POST"])
@@ -263,116 +305,35 @@ def logout():
 
 if __name__ == "__main__":
     with app.app_context():
+        # db.drop_all()
         db.create_all()
 
         if User.query.count() == 0:
-            user = User(username="testuser", password="password")
+            password = generate_password_hash(
+                app.config["ADMIN_KEY"], method="pbkdf2:sha256"
+            )
+            user = User(username="admin", password=password)
             db.session.add(user)
             db.session.commit()
 
-            products = [
-                Product(
-                    name="Product 1",
-                    description="Description for product 1",
-                    price=10.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact1@example.com",
-                    tags="tag1,tag2",
+            # Add sample products to the database
+            for product_data in products:
+                product = Product(
+                    name=product_data["name"],
+                    description=product_data["description"],
+                    price=product_data["price"],
+                    image_url=product_data["image_url"],
+                    contact_details=product_data["contact_details"],
+                    tags=product_data["tags"],
+                    date_posted=product_data["date_posted"],
                     owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 2",
-                    description="Description for product 2",
-                    price=20.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact2@example.com",
-                    tags="tag2,tag3",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 3",
-                    description="Description for product 3",
-                    price=30.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact3@example.com",
-                    tags="tag1,tag3",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 4",
-                    description="Description for product 4",
-                    price=40.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact4@example.com",
-                    tags="tag1,tag4",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 5",
-                    description="Description for product 5",
-                    price=50.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact5@example.com",
-                    tags="tag2,tag4",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 6",
-                    description="Description for product 6",
-                    price=60.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact6@example.com",
-                    tags="tag3,tag4",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 7",
-                    description="Description for product 7",
-                    price=70.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact7@example.com",
-                    tags="tag1,tag2",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 8",
-                    description="Description for product 8",
-                    price=80.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact8@example.com",
-                    tags="tag2,tag3",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 9",
-                    description="Description for product 9",
-                    price=90.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact9@example.com",
-                    tags="tag1,tag3",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-                Product(
-                    name="Product 10",
-                    description="Description for product 10",
-                    price=100.99,
-                    image_url="https://via.placeholder.com/300",
-                    contact_details="contact10@example.com",
-                    tags="tag1,tag4",
-                    owner=user,
-                    date_posted=datetime.utcnow(),
-                ),
-            ]
-            db.session.add_all(products)
+                )
+                db.session.add(product)
             db.session.commit()
 
-    app.run(debug=True)
+            for tag_name in tags:
+                new_tag = Tag(name=tag_name)
+                db.session.add(new_tag)
+            db.session.commit()
+
+    app.run(debug=True, port=8088)

@@ -3,6 +3,10 @@ from flask import Flask, render_template, request, session, url_for, redirect, f
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+
+from sqlalchemy.exc import IntegrityError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -11,6 +15,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///marketplace.db"
 db = SQLAlchemy(app)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["UPLOAD_FOLDER"] = os.path.join("instance", "product_pictures")
 
 
 class User(db.Model):
@@ -95,15 +100,138 @@ def product_detail(product_id):
     return render_template("product_detail.html", product=product)
 
 
-user_list = {"a": "2"}
+@app.route("/product_management", methods=["GET", "POST"])
+def product_management():
+    if "user_login" not in session:
+        flash("Please log in to manage your products")
+        return redirect(url_for("login"))
+
+    user = User.query.filter_by(username=session["user_login"]).first()
+    products = Product.query.filter_by(owner_id=user.id).all()
+
+    return render_template("product_management.html", products=products)
 
 
-def login_check(username, password):
-    try:
-        if user_list[username] == password:
-            return True
-    except KeyError:
-        return False
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@app.route("/product/add", methods=["GET", "POST"])
+def add_product():
+    if "user_login" not in session:
+        flash("Please log in to add a product")
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description")
+        price = request.form.get("price")
+        contact_details = request.form.get("contact_details")
+        tags = request.form.get("tags")
+
+        # Handle image upload
+        if "image" not in request.files:
+            flash("No file part")
+            return redirect(request.url)
+        file = request.files["image"]
+        if file.filename == "":
+            flash("No selected file")
+            return redirect(request.url)
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            image_url = url_for("static", filename="uploads/" + filename)
+        else:
+            image_url = None
+
+        user = User.query.filter_by(username=session["user_login"]).first()
+        new_product = Product(
+            name=name,
+            description=description,
+            price=price,
+            image_url=image_url,
+            contact_details=contact_details,
+            tags=tags,
+            owner_id=user.id,
+        )
+
+        db.session.add(new_product)
+        db.session.commit()
+        flash("Product added successfully")
+        return redirect(url_for("product_management"))
+
+    return render_template("add_product.html")
+
+
+@app.route("/product/edit/<int:product_id>", methods=["GET", "POST"])
+def edit_product(product_id):
+    if "user_login" not in session:
+        flash("Please log in to edit a product")
+        return redirect(url_for("login"))
+
+    product = Product.query.get_or_404(product_id)
+    if product.owner.username != session["user_login"]:
+        flash("You do not have permission to edit this product")
+        return redirect(url_for("product_management"))
+
+    if request.method == "POST":
+        product.name = request.form.get("name")
+        product.description = request.form.get("description")
+        product.price = request.form.get("price")
+        product.image_url = request.form.get("image_url")
+        product.contact_details = request.form.get("contact_details")
+        product.tags = request.form.get("tags")
+
+        db.session.commit()
+        flash("Product updated successfully")
+        return redirect(url_for("product_management"))
+
+    return render_template("edit_product.html", product=product)
+
+
+@app.route("/product/delete/<int:product_id>", methods=["POST"])
+def delete_product(product_id):
+    if "user_login" not in session:
+        flash("Please log in to delete a product")
+        return redirect(url_for("login"))
+
+    product = Product.query.get_or_404(product_id)
+    if product.owner.username != session["user_login"]:
+        flash("You do not have permission to delete this product")
+        return redirect(url_for("product_management"))
+
+    db.session.delete(product)
+    db.session.commit()
+    flash("Product deleted successfully")
+    return redirect(url_for("product_management"))
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not username or not password:
+            flash("Username and password are required")
+            return redirect(url_for("register"))
+
+        hashed_password = generate_password_hash(password, method="pbkdf2:sha256")
+
+        new_user = User(username=username, password=hashed_password)
+
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash("User registered successfully")
+            return redirect(url_for("login"))
+        except IntegrityError:
+            db.session.rollback()
+            flash("Username already exists")
+            return redirect(url_for("register"))
+
+    return render_template("register.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -111,9 +239,11 @@ def login():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+        user = User.query.filter_by(username=username).first()
 
-        if login_check(username, password):
-            session["user_login"] = username
+        if user and check_password_hash(user.password, password):
+            session["user_login"] = user.username
+            flash("Login successful")
             return redirect(url_for("index"))
         else:
             flash("Invalid username or password")
@@ -125,6 +255,7 @@ def login():
 @app.route("/logout")
 def logout():
     session.pop("user_login", None)
+    flash("You have been logged out")
     return redirect(url_for("index"))
 
 

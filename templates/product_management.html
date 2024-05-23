@@ -2,17 +2,18 @@
 {% block title %}Product Management{% endblock %}
 {% block content %}
 <div class="container">
-    <h1>Product Management</h1>
+    <h1 class="mb-4">Product Management</h1>
     <a href="{{ url_for('add_product') }}" class="btn btn-primary mb-3">Add Product</a>
     <div class="row">
         {% for product in products %}
         <div class="col-md-4 mb-3">
-            <div class="card">
+            <div class="card shadow">
                 <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top"
                     alt="{{ product.name }}" style="height: 150px; object-fit: cover;">
                 <div class="card-body">
-                    <h5 class="card-title">{{ product.name }} - ฿{{ product.price }}</h5>
-                    <div>
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">Price: ฿{{ product.price }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
                         <a href="{{ url_for('edit_product', product_id=product.id) }}"
                             class="btn btn-secondary btn-sm">Edit</a>
                         <form action="{{ url_for('delete_product', product_id=product.id) }}" method="post"

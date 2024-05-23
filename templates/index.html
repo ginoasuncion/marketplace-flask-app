@@ -1,6 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}Marketplace{% endblock %}
+{% block title %}Student Marketplace{% endblock %}
 {% block content %}
+<h1 class="text-center my-2">Welcome to the Student Marketplace!</h1>
+<p class="text-center text-muted mb-4">A dedicated platform for students to buy and sell goods. Browse through a wide range of items or post your own items for sale!</p>
 <form method="POST" action="{{ url_for('index') }}">
     <div class="form-row">
         <div class="col-md-4 mb-3">
@@ -35,21 +37,23 @@
     {% for product in products %}
     <div class="col-lg-4 col-md-6 mb-4">
         <a href="{{ url_for('product_detail', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
-            <div class="card">
-                <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top resize"
-                    alt="{{ product.name }}">
+            <div class="card h-100">
+                <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top" alt="{{ product.name }}"
+                    style="width: 100%; height: 200px; object-fit: contain;"> <!-- Ensure full image display -->
 
-                <div class="card-body">
-                    <h5 class="card-title">{{ product.name }}</h5>
-                    <p class="card-text">Price: ฿{{ product.price }}</p>
-                    <p class="card-text">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
-                    <p class="card-text">Posted by: {{ product.owner.username }}</p>
-                    <div>
-                        {% for tag in product.tags.split(',') %}
-                        <span class="tag">{{ tag }}</span>
-                        {% endfor %}
+                    <div class="card-body">
+                        <h4 class="card-title mb-1">{{ product.name }}</h4>
+                        <p class="card-text mb-1">
+                            <strong style="font-size: 1.2em;">฿{{ product.price }}</strong>
+                        </p>
+                        <p class="card-text mb-1">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
+                        <p class="card-text mb-0">Posted by: {{ product.owner.username }}</p>
+                        <div class="tags mt-4">
+                            {% for tag in product.tags.split(',') %}
+                            <span class="badge badge-secondary" style="background-color: {{ tag_colors.get(tag.strip(), '#6c757d') }}; color: white;">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
                     </div>
-                </div>
             </div>
         </a>
     </div>

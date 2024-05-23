@@ -4,7 +4,7 @@
 <div class="container">
     <div class="row justify-content-center mt-5">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card shadow">
                 <div class="card-body">
                     <h2 class="card-title text-center mb-4">Login</h2>
                     <form action="{{ url_for('login') }}" method="POST">
@@ -20,16 +20,13 @@
                     </form>
                     {% with messages = get_flashed_messages() %}
                     {% if messages %}
-                    <ul class="mt-3">
-                        {% for message in messages %}
-                        <li>{{ message }}
-                            <form action="{{ url_for('index', task_id=loop.index0) }}" method="POST"
-                                style="display: inline;">
-                                <button type="submit" class="btn btn-danger btn-sm ms-2">X</button>
-                            </form>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    <div class="alert alert-danger mt-3" role="alert">
+                        <ul class="list-unstyled">
+                            {% for message in messages %}
+                            <li>{{ message }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% endif %}
                     {% endwith %}
                 </div>

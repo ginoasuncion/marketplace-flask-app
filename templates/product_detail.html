@@ -1,25 +1,39 @@
 {% extends "layout.html" %}
 {% block title %}{{ product.name }}{% endblock %}
 {% block content %}
-<h1 class="mb-4">{{ product.name }}</h1>
-<div class="row">
-    <div class="col-md-6">
-        <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top resize-detail"
-            alt="{{ product.name }}">
-
-    </div>
-    <div class="col-md-6">
-        <h3>Price: ฿{{ product.price }}</h3>
-        <p>Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
-        <p>Posted by: {{ product.owner.username }}</p>
-        <p>Contact: {{ product.contact_details }}</p>
-        <p>{{ product.description }}</p>
-        <div>
-            {% for tag in product.tags.split(',') %}
-            <span class="badge badge-secondary">{{ tag }}</span>
-            {% endfor %}
+<div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title mb-4">{{ product.name }}</h1>
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top resize-detail" alt="{{ product.name }}">
+                </div>
+                <div class="col-md-6">
+                    <div class="details mt-3">
+                        <h2 class="price mb-3">฿{{ product.price }}</h2>
+                        <p class="mb-1">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
+                        <p class="mb-1">Posted by: {{ product.owner.username }}</p>
+                        <p class="mb-1">Contact: {{ product.contact_details }}</p>
+                        <div class="description">
+                            <h3 class="mt-4 mb-3">Description</h3>
+                            <p>{{ product.description }}</p>
+                        </div>
+                    </div>
+                    <div class="description">
+                        <p>{{ product.description }}</p>
+                    </div>
+                    <div>
+                        {% for tag in product.tags.split(',') %}
+                        <span class="tag badge" style="background-color: {{ tag_colors.get(tag.strip(), '#6c757d') }}; color: white; margin-right: 5px;">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-<a href="{{ url_for('index') }}" class="btn btn-primary mt-4">Back to Listings</a>
+<div class="container mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-primary float-right">Back to main page</a>
+</div>
 {% endblock %}

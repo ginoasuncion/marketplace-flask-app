@@ -7,6 +7,7 @@
     <title>{% block title %}Marketplace{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <style>
         .navbar {
             background-color: #3c237f;
@@ -21,7 +22,9 @@
         .nav-link:hover {
             color: #e2e6ea !important;
         }
-
+        .body {
+            background-color: #f0f0f0; /* A light greyish off-white color */
+        }
         .card {
             border: none;
             border-radius: 10px;
@@ -101,12 +104,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-                </li>
                 {% if 'user_login' in session %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('product_management') }}">Product</a>
+                    <a class="nav-link" href="{{ url_for('product_management') }}">Items</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>

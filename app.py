@@ -19,6 +19,8 @@ from dotenv import load_dotenv
 from sample_data import products  # Import sample data
 from tag_data import tags  # Import sample tags
 from PIL import Image
+import random
+import string
 
 load_dotenv()
 
@@ -29,6 +31,29 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["ADMIN_KEY"] = os.getenv("ADMIN_KEY")
 app.config["UPLOAD_FOLDER"] = os.path.join(app.instance_path, "product_pictures")
 app.config["CUSTOM_STATIC_PATH"] = os.path.join(app.instance_path, "product_pictures")
+
+tag_colors = {
+    "Eco": "#5cb85c",
+    "Outdoor": "#5bc0de",
+    "Tech": "#f0ad4e",
+    "Music": "#d9534f",
+    "Gadgets": "#428bca",
+    "Beauty": "#5cb85c",
+    "Skincare": "#5bc0de",
+    "Camping": "#f0ad4e",
+    "Travel": "#d9534f",
+    "Coffee": "#428bca",
+    "Gourmet": "#5cb85c",
+    "Fitness": "#5bc0de",
+    "Health": "#f0ad4e",
+    "Fashion": "#d9534f",
+    "Luxury": "#428bca",
+    "Art": "#5cb85c",
+    "Crafts": "#5bc0de",
+    "Stationery": "#f0ad4e",
+    "Books": "#d9534f",
+    "Photography": "#428bca",
+}
 
 
 class User(db.Model):
@@ -66,7 +91,7 @@ def custom_static(filename):
 @app.route("/", methods=["GET", "POST"])
 @app.route("/page/<int:page>", methods=["GET", "POST"])
 def index(page=1):
-    per_page = 6  # Products per page
+    per_page = 9  # Products per page
     search_query = request.form.get("search")
     filter_tag = request.form.get("filter_tag")
     sort_by = request.form.get("sort_by")
@@ -108,14 +133,20 @@ def index(page=1):
     unique_tags = set(tag for sublist in all_tags for tag in sublist[0].split(","))
 
     return render_template(
-        "index.html", products=products.items, pagination=products, all_tags=unique_tags
+        "index.html",
+        products=products.items,
+        pagination=products,
+        all_tags=unique_tags,
+        tag_colors=tag_colors,
     )
 
 
 @app.route("/product/<int:product_id>")
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
-    return render_template("product_detail.html", product=product)
+    return render_template(
+        "product_detail.html", product=product, tag_colors=tag_colors
+    )
 
 
 @app.route("/product_management", methods=["GET", "POST"])
@@ -303,37 +334,55 @@ def logout():
     return redirect(url_for("index"))
 
 
+def generate_random_string(length=8):
+    """Generate a random string of fixed length."""
+    letters = string.ascii_lowercase
+    return "".join(random.choice(letters) for i in range(length))
+
+
 if __name__ == "__main__":
     with app.app_context():
-        # db.drop_all()
+        db.drop_all()
         db.create_all()
 
-        if User.query.count() == 0:
+        # Create random users
+        for _ in range(10):  # Adjust the number of users as needed
+            username = generate_random_string(8)
+            password = generate_password_hash(
+                generate_random_string(12), method="pbkdf2:sha256"
+            )
+            user = User(username=username, password=password)
+            db.session.add(user)
+        db.session.commit()
+
+        # Check if the admin user exists; if not, create one
+        if User.query.filter_by(username="admin").count() == 0:
             password = generate_password_hash(
                 app.config["ADMIN_KEY"], method="pbkdf2:sha256"
             )
-            user = User(username="admin", password=password)
-            db.session.add(user)
+            admin_user = User(username="admin", password=password)
+            db.session.add(admin_user)
             db.session.commit()
 
-            # Add sample products to the database
-            for product_data in products:
-                product = Product(
-                    name=product_data["name"],
-                    description=product_data["description"],
-                    price=product_data["price"],
-                    image_url=product_data["image_url"],
-                    contact_details=product_data["contact_details"],
-                    tags=product_data["tags"],
-                    date_posted=product_data["date_posted"],
-                    owner=user,
-                )
-                db.session.add(product)
-            db.session.commit()
+        # Add sample products to the database (randomly assign owners)
+        users = User.query.all()
+        for product_data in products:
+            product = Product(
+                name=product_data["name"],
+                description=product_data["description"],
+                price=product_data["price"],
+                image_url=product_data["image_url"],
+                contact_details=product_data["contact_details"],
+                tags=product_data["tags"],
+                date_posted=product_data["date_posted"],
+                owner=random.choice(users),  # Assign a random user as owner
+            )
+            db.session.add(product)
+        db.session.commit()
 
-            for tag_name in tags:
-                new_tag = Tag(name=tag_name)
-                db.session.add(new_tag)
-            db.session.commit()
+        for tag_name in tags:
+            new_tag = Tag(name=tag_name)
+            db.session.add(new_tag)
+        db.session.commit()
 
     app.run(debug=True, port=8088)

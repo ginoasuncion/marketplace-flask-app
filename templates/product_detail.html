@@ -7,7 +7,8 @@
             <h1 class="card-title mb-4">{{ product.name }}</h1>
             <div class="row">
                 <div class="col-md-6">
-                    <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top resize-detail" alt="{{ product.name }}">
+                    <img src="{{ url_for('custom_static', filename=product.image_url) }}"
+                        class="card-img-top resize-detail" alt="{{ product.name }}">
                 </div>
                 <div class="col-md-6">
                     <div class="details mt-3">
@@ -20,12 +21,20 @@
                             <p>{{ product.description }}</p>
                         </div>
                     </div>
-                    <div class="description">
-                        <p>{{ product.description }}</p>
-                    </div>
-                    <div>
-                        {% for tag in product.tags.split(',') %}
-                        <span class="tag badge" style="background-color: {{ tag_colors.get(tag.strip(), '#6c757d') }}; color: white; margin-right: 5px;">{{ tag }}</span>
+                    <div class="tags mt-4">
+                        <h4 class="mb-3">Tags</h4>
+                        {% for tag_id in product.tags.split(',') %}
+                        {% set tag_id = tag_id.strip() %}
+                        {% if tag_id in tag_colors %}
+                        <span class="badge"
+                            style="background-color: {{ tag_colors[tag_id][1] }}; color: white; margin-right: 5px;">
+                            {{ tag_colors[tag_id][0] }} <!-- Displaying the tag name -->
+                        </span>
+                        {% else %}
+                        <span class="badge" style="background-color: #6c757d; color: white; margin-right: 5px;">
+                            Unknown Tag
+                        </span>
+                        {% endif %}
                         {% endfor %}
                     </div>
                 </div>

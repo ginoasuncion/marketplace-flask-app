@@ -22,9 +22,12 @@
         .nav-link:hover {
             color: #e2e6ea !important;
         }
+
         .body {
-            background-color: #f0f0f0; /* A light greyish off-white color */
+            background-color: #f0f0f0;
+            /* A light greyish off-white color */
         }
+
         .card {
             border: none;
             border-radius: 10px;
@@ -119,6 +122,12 @@
                     <a class="nav-link" href="{{ url_for('register') }}">Register</a>
                 </li>
                 {% endif %}
+
+                {% if session['user_login'] == 'admin' %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('tag_management') }}">Tags</a>
+                </li>
+                {% endif %}
             </ul>
         </div>
     </nav>
@@ -127,6 +136,9 @@
     </div>
     <!-- Bootstrap JS (optional) -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
 </body>
 
 </html>

@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Manage Tags</h1>
+    <!-- Form to Add New Tag -->
+    <form method="post" action="{{ url_for('add_tag') }}" class="mb-4">
+        <div class="form-row align-items-end">
+            <div class="col-auto">
+                <label class="sr-only" for="tag_name">Tag Name</label>
+                <input type="text" name="tag_name" class="form-control" placeholder="Tag Name" required>
+            </div>
+            <div class="col-auto">
+                <label class="sr-only" for="color_code">Color Code</label>
+                <input type="text" name="color_code" class="form-control" placeholder="Color Code (e.g., #ff0000)"
+                    required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Add Tag</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Table to Display Tags -->
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Tag Name</th>
+                <th>Color</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tag in tags %}
+            <tr>
+                <td>{{ tag.name }}</td>
+                <td><span class="badge" style="background-color: {{ tag.color_code }};">&nbsp;</span> {{ tag.color_code
+                    }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('delete_tag', tag_id=tag.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

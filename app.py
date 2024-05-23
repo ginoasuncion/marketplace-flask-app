@@ -21,6 +21,9 @@ from tag_data import tags  # Import sample tags
 from PIL import Image
 import random
 import string
+from faker import Faker
+
+fake = Faker()
 
 load_dotenv()
 
@@ -32,34 +35,12 @@ app.config["ADMIN_KEY"] = os.getenv("ADMIN_KEY")
 app.config["UPLOAD_FOLDER"] = os.path.join(app.instance_path, "product_pictures")
 app.config["CUSTOM_STATIC_PATH"] = os.path.join(app.instance_path, "product_pictures")
 
-tag_colors = {
-    "Eco": "#5cb85c",
-    "Outdoor": "#5bc0de",
-    "Tech": "#f0ad4e",
-    "Music": "#d9534f",
-    "Gadgets": "#428bca",
-    "Beauty": "#5cb85c",
-    "Skincare": "#5bc0de",
-    "Camping": "#f0ad4e",
-    "Travel": "#d9534f",
-    "Coffee": "#428bca",
-    "Gourmet": "#5cb85c",
-    "Fitness": "#5bc0de",
-    "Health": "#f0ad4e",
-    "Fashion": "#d9534f",
-    "Luxury": "#428bca",
-    "Art": "#5cb85c",
-    "Crafts": "#5bc0de",
-    "Stationery": "#f0ad4e",
-    "Books": "#d9534f",
-    "Photography": "#428bca",
-}
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
 
 class Product(db.Model):
@@ -78,9 +59,19 @@ class Product(db.Model):
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
+    color_code = db.Column(db.String(7), nullable=False)
 
     def __repr__(self):
         return self.name
+
+
+def get_tag_color():
+    try:
+        tags = Tag.query.all()
+        return {tag.name: tag.color_code for tag in tags}
+    except Exception as e:
+        print(f"Failed to fetch tags: {e}")
+        return {}
 
 
 @app.route("/cdn/<path:filename>")
@@ -94,6 +85,12 @@ def index(page=1):
     per_page = 9  # Products per page
     search_query = request.form.get("search")
     filter_tag = request.form.get("filter_tag")
+
+    # Convert tag name to tag id
+    tag = Tag.query.filter_by(name=filter_tag).first()
+    if tag:
+        filter_tag = str(tag.id)  # Ensure filter_tag is a string
+
     sort_by = request.form.get("sort_by")
 
     # Base query
@@ -109,8 +106,16 @@ def index(page=1):
                 Product.tags.ilike(search_term),
             )
         )
+
     if filter_tag:
-        query = query.filter(Product.tags.ilike(f"%{filter_tag}%"))
+        query = query.filter(
+            or_(
+                Product.tags.like(filter_tag + ",%"),  # Tag ID at the start
+                Product.tags.like("%, " + filter_tag + ",%"),  # Tag ID in the middle
+                Product.tags.like("%, " + filter_tag),  # Tag ID at the end
+                Product.tags == filter_tag,  # Exactly matches the string
+            )
+        )
 
     # Apply sorting
     if sort_by == "price_asc":
@@ -130,13 +135,14 @@ def index(page=1):
 
     # Get all unique tags
     all_tags = db.session.query(Product.tags).distinct().all()
-    unique_tags = set(tag for sublist in all_tags for tag in sublist[0].split(","))
+    all_tags = Tag.query.all()
+    tag_colors = {str(tag.id): (tag.name, tag.color_code) for tag in all_tags}
 
     return render_template(
         "index.html",
         products=products.items,
         pagination=products,
-        all_tags=unique_tags,
+        all_tags=all_tags,
         tag_colors=tag_colors,
     )
 
@@ -144,6 +150,9 @@ def index(page=1):
 @app.route("/product/<int:product_id>")
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
+    tag_ids = [int(tid) for tid in product.tags.split(",") if product.tags]
+    tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
+    tag_colors = {str(tag.id): (tag.name, tag.color_code) for tag in tags}
     return render_template(
         "product_detail.html", product=product, tag_colors=tag_colors
     )
@@ -340,18 +349,79 @@ def generate_random_string(length=8):
     return "".join(random.choice(letters) for i in range(length))
 
 
+# Route to manage tags
+@app.route("/tag_management", methods=["GET", "POST"])
+def tag_management():
+    if (
+        "user_login" not in session
+        or not User.query.filter_by(
+            username=session["user_login"], is_admin=True
+        ).first()
+    ):
+        flash("Access denied: You must be an admin to access this page.")
+        return redirect(url_for("index"))
+
+    tags = Tag.query.all()
+    return render_template("tag_management.html", tags=tags)
+
+
+# Route to add a tag
+@app.route("/add_tag", methods=["POST"])
+def add_tag():
+    if (
+        "user_login" not in session
+        or not User.query.filter_by(
+            username=session["user_login"], is_admin=True
+        ).first()
+    ):
+        flash("Access denied: You must be an admin to access this page.")
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        tag_name = request.form.get("tag_name")
+        color_code = request.form.get("color_code")
+        if tag_name and color_code:
+            tag = Tag(name=tag_name, color_code=color_code)
+            db.session.add(tag)
+            db.session.commit()
+            flash("Tag added successfully!")
+        else:
+            flash("Missing tag name or color code.")
+
+    return redirect(url_for("tag_management"))
+
+
+# Route to delete a tag
+@app.route("/delete_tag/<int:tag_id>", methods=["POST"])
+def delete_tag(tag_id):
+    if (
+        "user_login" not in session
+        or not User.query.filter_by(
+            username=session["user_login"], is_admin=True
+        ).first()
+    ):
+        flash("Access denied: You must be an admin to access this page.")
+        return redirect(url_for("index"))
+
+    tag = Tag.query.get_or_404(tag_id)
+    db.session.delete(tag)
+    db.session.commit()
+    flash("Tag deleted successfully.")
+    return redirect(url_for("tag_management"))
+
+
 if __name__ == "__main__":
     with app.app_context():
         db.drop_all()
         db.create_all()
 
         # Create random users
-        for _ in range(10):  # Adjust the number of users as needed
-            username = generate_random_string(8)
+        for _ in range(10):
+            username = fake.name()
             password = generate_password_hash(
-                generate_random_string(12), method="pbkdf2:sha256"
+                app.config["SECRET_KEY"], method="pbkdf2:sha256"
             )
-            user = User(username=username, password=password)
+            user = User(username=username, password=password, is_admin=False)
             db.session.add(user)
         db.session.commit()
 
@@ -360,7 +430,7 @@ if __name__ == "__main__":
             password = generate_password_hash(
                 app.config["ADMIN_KEY"], method="pbkdf2:sha256"
             )
-            admin_user = User(username="admin", password=password)
+            admin_user = User(username="admin", password=password, is_admin=True)
             db.session.add(admin_user)
             db.session.commit()
 
@@ -380,8 +450,8 @@ if __name__ == "__main__":
             db.session.add(product)
         db.session.commit()
 
-        for tag_name in tags:
-            new_tag = Tag(name=tag_name)
+        for tag in tags:
+            new_tag = Tag(name=tag["name"], color_code=tag["color_code"])
             db.session.add(new_tag)
         db.session.commit()
 

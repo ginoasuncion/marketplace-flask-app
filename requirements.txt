@@ -10,3 +10,4 @@ SQLAlchemy==2.0.30
 typing_extensions==4.11.0
 Werkzeug==3.0.3
 Pillow==10.3.0
+faker==25.2.0

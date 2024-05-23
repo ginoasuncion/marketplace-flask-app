@@ -8,7 +8,7 @@ products = [
         "price": 10.99,
         "image_url": "/bottle.jpg",
         "contact_details": "contact1@example.com",
-        "tags": "Eco, Outdoor",
+        "tags": "1, 2",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -17,7 +17,7 @@ products = [
         "price": 20.99,
         "image_url": "/wireless-bt-headphones.jpg",
         "contact_details": "contact2@example.com",
-        "tags": "Tech, Music, Gadgets",
+        "tags": "3, 4, 5",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -26,7 +26,7 @@ products = [
         "price": 30.99,
         "image_url": "organic-hand-cream.jpg",
         "contact_details": "contact3@example.com",
-        "tags": "Beauty, Skincare",
+        "tags": "6, 7",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -35,7 +35,7 @@ products = [
         "price": 40.99,
         "image_url": "tent.jpg",
         "contact_details": "contact4@example.com",
-        "tags": "Camping, Travel",
+        "tags": "8, 9",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -44,7 +44,7 @@ products = [
         "price": 50.99,
         "image_url": "coffee-beans.jpg",
         "contact_details": "contact5@example.com",
-        "tags": "Coffee, Gourmet",
+        "tags": "10, 11",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -53,7 +53,7 @@ products = [
         "price": 60.99,
         "image_url": "fitness-tracker.jpg",
         "contact_details": "contact6@example.com",
-        "tags": "Fitness, Health, Tech",
+        "tags": "12, 13, 3",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -62,7 +62,7 @@ products = [
         "price": 70.99,
         "image_url": "scarf.jpg",
         "contact_details": "contact7@example.com",
-        "tags": "Fashion, Luxury",
+        "tags": "14, 15",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -71,7 +71,7 @@ products = [
         "price": 80.99,
         "image_url": "watercolor.jpg",
         "contact_details": "contact8@example.com",
-        "tags": "Art, Crafts",
+        "tags": "17, 18",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -80,7 +80,7 @@ products = [
         "price": 90.99,
         "image_url": "journal.jpg",
         "contact_details": "contact9@example.com",
-        "tags": "Stationery, Books",
+        "tags": "19, 20",
         "date_posted": datetime.utcnow(),
     },
     {
@@ -89,7 +89,7 @@ products = [
         "price": 100.99,
         "image_url": "drone.jpg",
         "contact_details": "contact10@example.com",
-        "tags": "Tech, Photography",
+        "tags": "3, 21",
         "date_posted": datetime.utcnow(),
     },
 ]

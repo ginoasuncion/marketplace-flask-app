@@ -1,6 +1,5 @@
 {% extends "layout.html" %}
 {% block title %}Edit Product{% endblock %}
-
 {% block content %}
 <div class="container">
     <h1>Edit Product</h1>
@@ -16,39 +15,44 @@
         </div>
         <div class="form-group">
             <label for="price">Price:</label>
-            <input type="number" id="price" name="price" class="form-control" value="{{ product.price }}" required
-                min="0" step="0.01">
+            <input type="number" id="price" name="price" class="form-control" value="{{ " {:,}".format(product.price)
+                }}" required min="0" step="0.01">
         </div>
         <div class="form-group">
-            <label for="image">Current Image:</label>
-            <img src="{{ url_for('custom_static', filename=product.image_url) }}" alt="Current Image"
-                style="width: 100px; height: auto;">
-            <br>
-            <label for="new_image">Change Image:</label>
-            <input type="file" id="new_image" name="new_image" class="form-control">
+            <label for="image">Image:</label>
+            <div class="fallback"
+                style="border: 2px dashed #0087F7; padding: 20px; text-align: center; margin-bottom: 20px;">
+                <input type="file" name="image" id="image" class="form-control" />
+                Drag and drop your image here or click to select a file.
+            </div>
         </div>
         <div class="form-group">
             <label for="contact_details">Contact Details:</label>
             <input type="text" id="contact_details" name="contact_details" class="form-control"
                 value="{{ product.contact_details }}" required>
         </div>
-        <div class="form-group">
-            <label for="tags">Tags:</label>
-            <select id="tags" name="tags[]" class="form-control" multiple="multiple">
+        <div class="form-multi-select">
+            <strong>Tags:</strong>
+            <select name="tags[]" id="tags" class="form-control" multiple="multiple">
                 {% for tag in all_tags %}
-                <option value="{{ tag.id }}" {% if tag.id in product_tag_ids %}selected{% endif %}>{{ tag.name }}
-                </option>
+                <option value="{{ tag.id }}">{{ tag.name }}</option>
                 {% endfor %}
             </select>
         </div>
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="mark_as_sell" name="mark_as_sell" {% if
+                product.mark_as_sell %}checked{% endif %}>
+            <label class="form-check-label" for="mark_as_sell">Mark as SOLD!</label>
+        </div>
+        <br>
         <button type="button" onclick="history.back()" class="btn btn-secondary">Back</button>
         <input type="submit" value="Update Product" class="btn btn-primary">
     </form>
 </div>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script> -->
 <script>
     $(document).ready(function () {
         $('#tags').select2({

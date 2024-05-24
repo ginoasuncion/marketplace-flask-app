@@ -39,14 +39,20 @@
     <div class="col-lg-4 col-md-6 mb-4">
         <a href="{{ url_for('product_detail', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
             <div class="card h-100">
-                <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top"
-                    alt="{{ product.name }}" style="width: 100%; height: 200px; object-fit: contain;">
-                <!-- Ensure full image display -->
-
+                {% if product.mark_as_sell %}
+                <div
+                    class="sold-overlay position-absolute w-100 h-100 d-flex align-items-center justify-content-center">
+                    <span class="sold-text">SOLD!</span>
+                </div>
+                {% endif %}
+                <div class="image-container position-relative">
+                    <img src="{{ url_for('custom_static', filename=product.image_url) }}" class="card-img-top"
+                        alt="{{ product.name }}" style="width: 100%; height: 200px; object-fit: contain;">
+                </div>
                 <div class="card-body">
                     <h4 class="card-title mb-1">{{ product.name }}</h4>
                     <p class="card-text mb-1">
-                        <strong style="font-size: 1.2em;">฿{{ product.price }}</strong>
+                        <strong style="font-size: 1.2em;">฿{{ "{:,}".format(product.price) }}</strong>
                     </p>
                     <p class="card-text mb-1">Date Posted: {{ product.date_posted.strftime('%Y-%m-%d') }}</p>
                     <p class="card-text mb-0">Posted by: {{ product.owner.username }}</p>

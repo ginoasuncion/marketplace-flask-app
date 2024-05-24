@@ -54,6 +54,7 @@ class Product(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     owner_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     owner = db.relationship("User", backref=db.backref("products", lazy=True))
+    mark_as_sell = db.Column(db.Boolean, default=False)
 
 
 class Tag(db.Model):
@@ -252,18 +253,24 @@ def edit_product(product_id):
         product.contact_details = request.form.get("contact_details")
         selected_tag_ids = request.form.getlist("tags[]")
         product.tags = ",".join(selected_tag_ids)
+        product.mark_as_sell = True if request.form.get("mark_as_sell") else False
 
-        image_url = request.form.get("image_url")
-        if image_url:
-            product.image_url = image_url
+        if "new_image" in request.files:
+            file = request.files["new_image"]
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                file.save(filepath)
 
-        try:
-            db.session.commit()
-            flash("Product updated successfully!")
-            return redirect(url_for("product_management"))
-        except Exception as e:
-            db.session.rollback()
-            flash("Failed to update product: " + str(e))
+                with Image.open(filepath) as img:
+                    img = img.resize((300, 300), Image.LANCZOS)
+                    img.save(filepath)  # Save the resized image
+
+                product.image_url = filename
+
+        db.session.commit()
+        flash("Product updated successfully!")
+        return redirect(url_for("product_management"))
 
     return render_template(
         "edit_product.html",

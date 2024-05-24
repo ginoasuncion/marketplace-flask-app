@@ -2,7 +2,12 @@
 {% block title %}{{ product.name }}{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="card">
+    <div class="card position-relative">
+        {% if product.mark_as_sell %}
+        <div class="sold-overlay position-absolute w-100 h-100 d-flex align-items-center justify-content-center">
+            <span class="sold-text">SOLD!</span>
+        </div>
+        {% endif %}
         <div class="card-body">
             <h1 class="card-title mb-4">{{ product.name }}</h1>
             <div class="row">
